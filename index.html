@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHITRAK RVCE — Electric Mobility Redefined</title>
+  <meta name="description" content="Chitrak — the electric competition motorcycle from RVCE. Scroll-controlled orbit study. Built to compete." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23050505'/%3E%3Ctext x='16' y='23' font-family='Arial' font-size='20' font-weight='bold' fill='%23f5f4f1' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E" />
+  <link rel="preload" href="public/video/chitrak-rotation.mp4" as="video" type="video/mp4" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#machine">Skip to content</a>
+
+  <header class="nav" id="nav">
+    <a class="nav-brand" href="#top" aria-label="Chitrak RVCE home">
+      <span class="nav-brand-mark">CHITRAK</span>
+      <span class="nav-brand-sub">RVCE</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#machine">Machine</a>
+      <a href="#engineering">Engineering</a>
+      <a href="#competition">Competition</a>
+      <a href="#team">Team</a>
+    </nav>
+    <a class="nav-cta" href="#contact">Contact</a>
+    <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" hidden>
+    <a href="#machine">Machine</a>
+    <a href="#engineering">Engineering</a>
+    <a href="#competition">Competition</a>
+    <a href="#team">Team</a>
+    <a href="#contact">Contact</a>
+  </div>
+
+  <main id="top">
+    <!-- ============ HERO : scroll-scrubbed orbit ============ -->
+    <section class="hero" id="hero" aria-label="Chitrak motorcycle scroll-controlled rotation">
+      <div class="hero-pin" id="heroPin">
+        <div class="hero-video-wrap">
+          <video
+            id="chitrakVideo"
+            class="hero-video"
+            muted
+            playsinline
+            disablepictureinpicture
+            preload="auto"
+            poster="public/images/chitrak-poster.webp"
+            aria-label="Video orbit study of the Chitrak electric motorcycle, controlled by scroll position">
+            <source src="public/video/chitrak-rotation.webm" type="video/webm" />
+            <source src="public/video/chitrak-rotation.mp4" type="video/mp4" />
+          </video>
+          <div class="hero-glow" aria-hidden="true"></div>
+          <div class="hero-scrim" aria-hidden="true"></div>
+          <div class="hero-grain" aria-hidden="true"></div>
+        </div>
+
+        <div class="hero-ui">
+          <p class="hero-kicker" data-hero="kicker">RVCE &mdash; ELECTRIC COMPETITION MOTORCYCLE</p>
+          <h1 class="hero-title" data-hero="title">CHITRAK</h1>
+          <p class="hero-sub" data-hero="sub">ELECTRIC MOBILITY<br />REDEFINED</p>
+          <div class="hero-statement" data-hero="statement" aria-label="Built to compete.">
+            <span class="stmt-mask"><span class="stmt-line">BUILT</span></span>
+            <span class="stmt-mask"><span class="stmt-line">TO</span></span>
+            <span class="stmt-mask"><span class="stmt-line">COMPETE.</span></span>
+          </div>
+
+          <div class="hero-callouts" id="heroCallouts" aria-hidden="true"><!-- injected by callouts.js --></div>
+          <div class="hero-cue" data-hero="cue" aria-hidden="true"><span>SCROLL</span></div>
+
+          <p class="hero-aggressive" data-hero="aggressive" aria-hidden="true">ENGINEERED&thinsp;/&thinsp;PRECISION</p>
+
+          <div class="hero-end" data-hero="end">
+            <p class="hero-end-mark">CHITRAK <span>RVCE</span></p>
+            <a class="btn" href="#machine">Explore the machine</a>
+          </div>
+
+          <div class="hero-meta">
+            <span class="hero-meta-item">ORBIT STUDY ~270&deg;</span>
+            <span class="hero-meta-item hero-progress"><span id="scrollPct">00</span> / 100</span>
+            <span class="hero-meta-item">SCROLL TO ROTATE</span>
+          </div>
+          <div class="hero-progressbar" aria-hidden="true"><span id="progressBar"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THE MACHINE ============ -->
+    <section class="section machine" id="machine" aria-labelledby="machineTitle">
+      <div class="section-head">
+        <p class="mono-label">01 &mdash; The Machine</p>
+        <h2 id="machineTitle">THE<br />MACHINE</h2>
+        <p class="section-lede">One motorcycle, examined frame by frame. Stills below are crops of the same orbit asset &mdash; no new angles invented.</p>
+      </div>
+      <div class="machine-grid" id="machineGrid"><!-- injected from spec-data.js --></div>
+    </section>
+
+    <!-- ============ ENGINEERING ============ -->
+    <section class="section engineering" id="engineering" aria-labelledby="engTitle">
+      <div class="section-head">
+        <p class="mono-label">02 &mdash; Engineering</p>
+        <h2 id="engTitle">ENGINEERING<br />LANGUAGE</h2>
+        <p class="section-lede">Figures appear here only when verified. Everything else stays blank &mdash; on purpose.</p>
+      </div>
+      <dl class="spec-table" id="specTable"><!-- injected from spec-data.js --></dl>
+    </section>
+
+    <!-- ============ PERFORMANCE ============ -->
+    <section class="section performance" id="performance" aria-labelledby="perfTitle">
+      <div class="section-head">
+        <p class="mono-label">03 &mdash; Performance</p>
+        <h2 id="perfTitle">PERFORMANCE</h2>
+        <p class="section-lede">Telemetry placeholders. Replace the values in <code>js/spec-data.js</code> when track data is confirmed.</p>
+      </div>
+      <div class="perf-grid" id="perfGrid"><!-- injected from spec-data.js --></div>
+    </section>
+
+    <!-- ============ COMPETITION ============ -->
+    <section class="section competition" id="competition" aria-labelledby="compTitle">
+      <div class="section-head">
+        <p class="mono-label">04 &mdash; Competition</p>
+        <h2 id="compTitle">BUILT TO<br />COMPETE.</h2>
+        <p class="section-lede">Race entries will be listed here. No event names are stated until entries are confirmed.</p>
+      </div>
+      <ul class="comp-list" id="compList"><!-- injected from spec-data.js --></ul>
+    </section>
+
+    <!-- ============ TEAM ============ -->
+    <section class="section team" id="team" aria-labelledby="teamTitle">
+      <div class="section-head">
+        <p class="mono-label">05 &mdash; Team</p>
+        <h2 id="teamTitle">THE TEAM</h2>
+        <p class="section-lede">Roster published on confirmation. No placeholder names.</p>
+      </div>
+      <div class="team-grid" id="teamGrid"><!-- injected from spec-data.js --></div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section class="section final" id="contact" aria-labelledby="finalTitle">
+      <p class="mono-label">06 &mdash; Contact</p>
+      <h2 id="finalTitle">CHITRAK<br />RVCE</h2>
+      <p class="section-lede">ELECTRIC MOBILITY REDEFINED</p>
+      <div class="final-actions">
+        <a class="btn btn-solid" href="mailto:contact@example.com" data-contact="email">Sponsor the team</a>
+        <a class="btn" href="#top">Back to top</a>
+      </div>
+      <p class="mono-note">Replace the <code>mailto:</code> address with the team inbox before launch.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>CHITRAK &mdash; RVCE</span>
+    <span class="footer-note">Orbit footage: AI visualization of the Chitrak motorcycle</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

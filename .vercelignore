@@ -1,0 +1,5 @@
+# Dev-only / source files — never deployed to Vercel.
+serve.py
+Screenshot *.png
+grok-video-*.mp4
+.vercel
