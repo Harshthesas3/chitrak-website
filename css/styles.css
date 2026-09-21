@@ -267,7 +267,8 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
   }
   .mobile-menu[hidden] { display: none; }
   .mobile-menu a { text-decoration: none; padding: 12px; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; }
-  .hero-title { font-size: clamp(52px, 17vw, 110px); }
+  .hero-title { font-size: clamp(52px, 17vw, 110px); mix-blend-mode: normal; }
+  .hero-grain { display: none; }
   .hero-aggressive { font-size: 7vw; white-space: nowrap; }
   .hero-statement { font-size: clamp(38px, 11vw, 72px); bottom: 24%; }
   .hero-video-wrap { top: 0; height: 36svh; }

@@ -121,11 +121,15 @@ function renderContact() {
    p0 state == CSS defaults (title/kicker/sub visible) so first paint is
    already composed; the timeline only moves things away and back. */
 function heroTimeline() {
+  // Mobile GPUs rasterize huge blended/blurred text every frame while the
+  // video seeks underneath — drop the blur and the hidden callouts there.
+  // Desktop choreography is untouched.
+  const isMobile = window.matchMedia("(max-width: 760px)").matches;
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: "#hero",
       start: 0, // hero is the first document element; see scroll-video.js
-      end: () => `+=${Math.round(window.innerHeight * (window.innerWidth < 760 ? 2.5 : 3.5))}`,
+      end: () => `+=${Math.round(window.innerHeight * (window.innerWidth < 760 ? 2.0 : 3.5))}`,
       scrub: 0.4,
       invalidateOnRefresh: true,
     },
@@ -138,21 +142,29 @@ function heroTimeline() {
     .to('[data-hero="sub"]', { opacity: 0, y: -30, duration: 0.6 }, 0.9)
     .to('[data-hero="kicker"]', { opacity: 0, duration: 0.5 }, 1.0)
     // 40–65%: technical callouts, windowed to orbit angles where each
-    // region is actually on screen (front → flank → rear → flank)
-    .fromTo('.callout[data-zone="fork"]', { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.35 }, 1.9)
+    // region is actually on screen (front → flank → rear → flank).
+    // Skipped on mobile: .hero-callouts is display:none there.
+    if (!isMobile) {
+    tl.fromTo('.callout[data-zone="fork"]', { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.35 }, 1.9)
     .to('.callout[data-zone="fork"]', { opacity: 0, duration: 0.3 }, 2.4)
     .fromTo('.callout[data-zone="cell"]', { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.35 }, 2.3)
     .to('.callout[data-zone="cell"]', { opacity: 0, duration: 0.3 }, 2.8)
     .fromTo('.callout[data-zone="drive"]', { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.35 }, 2.6)
     .to('.callout[data-zone="drive"]', { opacity: 0, duration: 0.3 }, 3.1)
     .fromTo('.callout[data-zone="brake"]', { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.35 }, 2.85)
-    .to('.callout[data-zone="brake"]', { opacity: 0, duration: 0.3 }, 3.3)
+    .to('.callout[data-zone="brake"]', { opacity: 0, duration: 0.3 }, 3.3);
+    }
     // 65–85%: aggressive statement, clip-reveal per line over soft blur
-    .to('[data-hero="title"]', { opacity: 0, y: "-80%", duration: 0.3 }, 3.05)
-    .to('[data-hero="statement"]', { opacity: 1, duration: 0.3 }, 3.15)
-    .fromTo(".stmt-line", { yPercent: 112, filter: "blur(5px)" },
-      { yPercent: 0, filter: "blur(0px)", stagger: 0.14, duration: 0.55, ease: "power3.out" }, 3.2)
-    .fromTo('[data-hero="aggressive"]', { opacity: 0 }, { opacity: 0.55, duration: 0.6 }, 3.25)
+    // (blur omitted on mobile — compositor-only transform + opacity instead)
+    tl.to('[data-hero="title"]', { opacity: 0, y: "-80%", duration: 0.3 }, 3.05)
+    .to('[data-hero="statement"]', { opacity: 1, duration: 0.3 }, 3.15);
+    if (isMobile) {
+      tl.fromTo(".stmt-line", { yPercent: 112 }, { yPercent: 0, stagger: 0.14, duration: 0.55, ease: "power3.out" }, 3.2);
+    } else {
+      tl.fromTo(".stmt-line", { yPercent: 112, filter: "blur(5px)" },
+        { yPercent: 0, filter: "blur(0px)", stagger: 0.14, duration: 0.55, ease: "power3.out" }, 3.2);
+    }
+    tl.fromTo('[data-hero="aggressive"]', { opacity: 0 }, { opacity: 0.55, duration: 0.6 }, 3.25)
     .to('[data-hero="statement"]', { opacity: 0, y: -40, duration: 0.45 }, 4.25)
     .to('[data-hero="aggressive"]', { opacity: 0, duration: 0.4 }, 4.25)
     // 85–100%: simplify to mark + CTA over the completed arc
