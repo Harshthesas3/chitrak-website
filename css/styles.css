@@ -176,8 +176,59 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
 
 .comp-list { list-style: none; border-top: 1px solid var(--line); }
 .comp-list li { padding: 22px 4px; border-bottom: 1px solid var(--line); color: var(--ink-dim); font-size: 17px; }
-.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-.team-empty { border: 1px dashed var(--line); padding: 60px 30px; text-align: center; color: var(--ink-faint); grid-column: 1/-1; }
+.team-groups { display: flex; flex-direction: column; gap: 72px; }
+.team-group { display: flex; flex-direction: column; gap: 22px; }
+.team-group-title {
+  display: flex; align-items: baseline; gap: 12px;
+  font-family: var(--mono); font-size: 12px; font-weight: 400;
+  letter-spacing: 0.28em; color: var(--ink-dim);
+  border-top: 1px solid var(--line); padding-top: 18px;
+}
+.team-group-title .team-group-index { color: var(--accent); }
+.team-roster { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.team-roster--leadership { grid-template-columns: repeat(3, 1fr); }
+.team-roster--engineering { grid-template-columns: repeat(3, 1fr); }
+.team-roster--media { grid-template-columns: 1fr; max-width: 460px; }
+.team-card {
+  position: relative; background: var(--bg-2);
+  padding: 30px 26px 28px; min-width: 0; overflow: hidden;
+  border-left: 2px solid transparent;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+}
+.team-roster--leadership .team-card { padding: 40px 30px 36px; background: #0e0e10; }
+.team-index {
+  display: block; font-family: var(--mono); font-size: 12px;
+  letter-spacing: 0.28em; color: var(--ink-faint); margin-bottom: 18px;
+  transition: color 0.25s ease;
+}
+.team-name {
+  font-size: 21px; font-weight: 800; letter-spacing: 0.04em; line-height: 1.15;
+  text-transform: uppercase; overflow-wrap: break-word; word-break: normal;
+  margin-bottom: 10px;
+}
+.team-roster--leadership .team-name { font-size: clamp(22px, 2.4vw, 30px); }
+.team-role {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--ink-dim);
+  border-top: 1px solid var(--line); padding-top: 14px; margin-top: 18px;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.team-card::after {
+  content: ""; position: absolute; top: 30px; right: 26px;
+  width: 8px; height: 8px; background: var(--accent);
+  opacity: 0; transform: translateX(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.team-card:hover, .team-card:focus-visible {
+  border-left-color: var(--accent);
+  transform: translateX(4px);
+  outline: none;
+}
+.team-card:hover .team-index, .team-card:focus-visible .team-index { color: var(--accent); }
+.team-card:hover .team-role, .team-card:focus-visible .team-role { color: var(--ink); border-top-color: rgba(245,244,241,0.32); }
+.team-card:hover::after, .team-card:focus-visible::after { opacity: 1; transform: translateX(0); }
+.team-card:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+.team-empty { border: 1px dashed var(--line); padding: 60px 30px; text-align: center; color: var(--ink-faint); }
 
 .btn {
   display: inline-block; text-decoration: none; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
@@ -195,6 +246,12 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   padding: 28px; border-top: 1px solid var(--line);
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--ink-faint);
+}
+
+/* ---------- team responsive ---------- */
+@media (max-width: 1024px) {
+  .team-roster--leadership, .team-roster--engineering { grid-template-columns: repeat(2, 1fr); }
+  .team-roster--media { max-width: none; }
 }
 
 /* ---------- mobile ---------- */
@@ -242,6 +299,13 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
   .section { padding: 14vh 18px 8vh; }
   .spec-row { grid-template-columns: 1fr; gap: 6px; }
   .hero-meta { left: 18px; right: 18px; }
+  .team-groups { gap: 52px; }
+  .team-roster--leadership, .team-roster--engineering, .team-roster--media { grid-template-columns: 1fr; }
+  .team-roster--leadership .team-card { padding: 30px 22px 26px; }
+  .team-card { padding: 26px 20px 24px; }
+  .team-card:hover, .team-card:focus-visible { transform: none; }
+  .team-name { font-size: 19px; }
+  .team-roster--leadership .team-name { font-size: 21px; }
 }
 
 /* ---------- reduced motion ---------- */
@@ -249,4 +313,6 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
   html { scroll-behavior: auto; }
   .hero-pin { height: auto; min-height: 100svh; }
   .hero-video { position: relative; }
+  .team-card, .team-card::after, .team-index, .team-role { transition: none; }
+  .team-card:hover, .team-card:focus-visible { transform: none; }
 }

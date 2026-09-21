@@ -46,6 +46,20 @@ export const PERFORMANCE = [
 
 export const COMPETITIONS = []; // { season, event, result } — add only confirmed entries
 
-export const TEAM = []; // { name, role } — add only confirmed members
+export const TEAM = [
+  { name: "T Harshith Krishna Sastry", role: "President", group: "leadership" },
+  { name: "Pradyun Venkateshan", role: "Vice President", group: "leadership" },
+  { name: "Disha", role: "Secretary", group: "leadership" },
+  { name: "Sainath Reddy", role: "Telemetry Analyst", group: "engineering" },
+  { name: "Vishwa", role: "Data Analyst", group: "engineering" },
+  { name: "Yashwanth RK", role: "Electrical Wing Head", group: "engineering" },
+  { name: "Trisha Prasad", role: "Media & Sponsorship Head", group: "media" },
+]; // authoritative roster — no bios, photos, or links
 
-export const CONTACT = { email: "contact@example.com" }; // TODO: replace with team inbox
+export const TEAM_GROUPS = [
+  { id: "leadership", index: "01", title: "LEADERSHIP" },
+  { id: "engineering", index: "02", title: "ENGINEERING & DATA" },
+  { id: "media", index: "03", title: "MEDIA & PARTNERSHIPS" },
+];
+
+export const CONTACT = { email: "chitrak@rvce.edu.in" };

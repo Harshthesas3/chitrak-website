@@ -1,4 +1,4 @@
-import { MACHINE_CARDS, SPECS, PERFORMANCE, COMPETITIONS, TEAM, CONTACT } from "./spec-data.js";
+import { MACHINE_CARDS, SPECS, PERFORMANCE, COMPETITIONS, TEAM, TEAM_GROUPS, CONTACT } from "./spec-data.js";
 import { createScrollVideo } from "./scroll-video.js";
 import { renderCallouts } from "./callouts.js";
 
@@ -63,23 +63,58 @@ function renderComp() {
 }
 
 function renderTeam() {
-  const grid = $("#teamGrid");
-  grid.innerHTML = "";
+  const mount = $("#teamGrid");
+  mount.innerHTML = "";
   if (!TEAM.length) {
-    grid.innerHTML = `<div class="team-empty">Roster publishes on confirmation. No placeholder names.</div>`;
+    mount.innerHTML = `<div class="team-empty">Roster publishes on confirmation. No placeholder names.</div>`;
     return;
   }
-  for (const m of TEAM) {
-    const d = document.createElement("div");
-    d.className = "perf-cell";
-    d.innerHTML = `<div class="num" style="font-size:28px">${m.name}</div><div class="lbl">${m.role}</div>`;
-    grid.appendChild(d);
+  let seq = 0;
+  for (const g of TEAM_GROUPS) {
+    const members = TEAM.filter((m) => m.group === g.id);
+    if (!members.length) continue;
+    const group = document.createElement("div");
+    group.className = `team-group team-group--${g.id}`;
+
+    const heading = document.createElement("h3");
+    heading.className = "team-group-title";
+    heading.innerHTML = `<span class="team-group-index">${g.index}</span><span aria-hidden="true"> // </span><span>${g.title}</span>`;
+    group.appendChild(heading);
+
+    const roster = document.createElement("div");
+    roster.className = `team-roster team-roster--${g.id}`;
+    roster.setAttribute("role", "list");
+    for (const m of members) {
+      seq += 1;
+      const card = document.createElement("article");
+      card.className = "team-card";
+      card.setAttribute("role", "listitem");
+      card.setAttribute("tabindex", "0");
+      const idx = String(seq).padStart(2, "0");
+      const nameEl = document.createElement("span");
+      nameEl.className = "team-index";
+      nameEl.setAttribute("aria-hidden", "true");
+      nameEl.textContent = idx;
+      const h = document.createElement("h4");
+      h.className = "team-name";
+      h.textContent = m.name;
+      const r = document.createElement("p");
+      r.className = "team-role";
+      r.textContent = m.role;
+      card.append(nameEl, h, r);
+      roster.appendChild(card);
+    }
+    group.appendChild(roster);
+    mount.appendChild(group);
   }
 }
 
 function renderContact() {
   const a = document.querySelector('[data-contact="email"]');
-  if (a && CONTACT.email) a.href = `mailto:${CONTACT.email}`;
+  if (a && CONTACT.email) {
+    const subject = "Chitrak RVCE — Sponsorship / Partnership Inquiry";
+    a.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}`;
+  }
 }
 
 /* ---------- hero typography choreography (shares the hero scroll range) ----------
@@ -133,7 +168,7 @@ function reveals() {
       scrollTrigger: { trigger: head, start: "top 82%" },
     });
   });
-  gsap.utils.toArray(".machine-card, .perf-cell, .spec-row").forEach((el, i) => {
+  gsap.utils.toArray(".machine-card, .perf-cell, .spec-row, .team-group-title, .team-card").forEach((el, i) => {
     gsap.fromTo(el, { opacity: 0, y: 34 }, {
       opacity: 1, y: 0, duration: 0.7, ease: "power2.out", delay: (i % 4) * 0.05,
       scrollTrigger: { trigger: el, start: "top 88%" },
