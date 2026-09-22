@@ -49,6 +49,7 @@ export const PERFORMANCE = [
 export const COMPETITIONS = []; // { season, event, result } — add only confirmed entries
 
 export const TEAM = [
+  { name: "Dr. Rajkumar", role: "Faculty Incharge / Mentor", group: "faculty" },
   { name: "T Harshith Krishna Sastry", role: "President", group: "leadership" },
   { name: "Pradyun Venkateshan", role: "Vice President", group: "leadership" },
   { name: "Disha", role: "Secretary", group: "leadership" },
@@ -59,9 +60,10 @@ export const TEAM = [
 ]; // authoritative roster — no bios, photos, or links
 
 export const TEAM_GROUPS = [
-  { id: "leadership", index: "01", title: "LEADERSHIP" },
-  { id: "engineering", index: "02", title: "ENGINEERING & DATA" },
-  { id: "media", index: "03", title: "MEDIA & PARTNERSHIPS" },
+  { id: "faculty", index: "01", title: "FACULTY MENTOR" },
+  { id: "leadership", index: "02", title: "LEADERSHIP" },
+  { id: "engineering", index: "03", title: "ENGINEERING & DATA" },
+  { id: "media", index: "04", title: "MEDIA & PARTNERSHIPS" },
 ];
 
 export const CONTACT = { email: "chitrak@rvce.edu.in" };

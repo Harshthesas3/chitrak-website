@@ -189,6 +189,7 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
 .team-roster--leadership { grid-template-columns: repeat(3, 1fr); }
 .team-roster--engineering { grid-template-columns: repeat(3, 1fr); }
 .team-roster--media { grid-template-columns: 1fr; max-width: 460px; }
+.team-roster--faculty { grid-template-columns: 1fr; max-width: 460px; }
 .team-card {
   position: relative; background: var(--bg-2);
   padding: 30px 26px 28px; min-width: 0; overflow: hidden;
