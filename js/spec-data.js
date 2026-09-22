@@ -38,11 +38,13 @@ export const SPECS = [
 ];
 
 export const PERFORMANCE = [
-  { label: "TOP SPEED", value: null, unit: "" },
+  { label: "TOP SPEED", value: 85, unit: "kmph" },
+  { label: "PEAK POWER", value: 4, unit: "kW" },
+  { label: "RATED POWER", value: 2, unit: "kW" },
+  { label: "TORQUE", value: 127, unit: "Nm" },
   { label: "RANGE", value: null, unit: "" },
-  { label: "PEAK POWER", value: null, unit: "" },
   { label: "WEIGHT", value: null, unit: "" },
-];
+]; // Chitrak previous gen (2025) — acceleration / gradient blank in source
 
 export const COMPETITIONS = []; // { season, event, result } — add only confirmed entries
 

@@ -23,7 +23,16 @@ class RangeHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*a, directory=ROOT, **kw)
 
     def send_head(self):
-        path = self.translate_path(self.path.split("?")[0].split("#")[0])
+        raw = self.path.split("?")[0].split("#")[0]
+        path = self.translate_path(raw)
+        # Directory index support (e.g. /sponsor -> sponsor/index.html),
+        # matching Vercel static + cleanUrls behavior.
+        if os.path.isdir(path):
+            for index in ("index.html", "index.htm"):
+                candidate = os.path.join(path, index)
+                if os.path.isfile(candidate):
+                    path = candidate
+                    break
         if not os.path.isfile(path):
             self.send_error(404, "File not found")
             return None
