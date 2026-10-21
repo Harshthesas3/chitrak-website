@@ -160,6 +160,31 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
 .machine-card p { color: var(--ink-dim); font-size: 15px; }
 .machine-card .status { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--accent); display: block; margin-top: 14px; }
 
+.eng-subhead { margin-bottom: 18px; }
+.eng-subhead--figures { margin-top: 58px; }
+.eng-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px; background: var(--line); border: 1px solid var(--line);
+}
+.eng-card {
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--bg-2); padding: 34px 30px 28px;
+}
+.eng-card-index {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.28em;
+  color: var(--accent);
+}
+.eng-card h3 {
+  font-size: clamp(20px, 2.2vw, 28px); letter-spacing: 0.06em;
+  line-height: 1.1; margin: 14px 0 16px;
+}
+.eng-card p { color: var(--ink-dim); font-size: 15px; line-height: 1.7; }
+.eng-card-tag {
+  margin-top: auto; padding-top: 24px; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+  line-height: 1.7; color: var(--ink-faint);
+}
+
 .spec-table { border-top: 1px solid var(--line); }
 .spec-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
@@ -304,6 +329,8 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
   .section-head h2 { font-size: clamp(38px, 12vw, 64px); }
   .final h2 { font-size: clamp(44px, 14vw, 80px); }
   .section { padding: 14vh 18px 8vh; }
+  .eng-grid { grid-template-columns: 1fr; }
+  .eng-card { padding: 28px 22px 24px; }
   .spec-row { grid-template-columns: 1fr; gap: 6px; }
   .hero-meta { left: 18px; right: 18px; }
   .team-groups { gap: 52px; }

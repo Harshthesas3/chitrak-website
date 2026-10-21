@@ -1,4 +1,4 @@
-import { MACHINE_CARDS, SPECS, PERFORMANCE, COMPETITIONS, TEAM, TEAM_GROUPS, CONTACT } from "./spec-data.js";
+import { MACHINE_CARDS, SUBSYSTEMS, SPECS, PERFORMANCE, COMPETITIONS, TEAM, TEAM_GROUPS, CONTACT } from "./spec-data.js";
 import { createScrollVideo } from "./scroll-video.js";
 import { renderCallouts } from "./callouts.js";
 
@@ -16,6 +16,32 @@ function renderMachine() {
       <figure><img loading="lazy" src="${c.img}" alt="${c.alt}" /></figure>
       <div class="body"><h3>${c.title}</h3><p>${c.text}</p>
       <span class="status">${c.status}</span></div>`;
+    grid.appendChild(card);
+  }
+}
+
+function renderSubsystems() {
+  const grid = $("#engGrid");
+  grid.innerHTML = "";
+  for (const s of SUBSYSTEMS) {
+    const card = document.createElement("article");
+    card.className = "eng-card";
+
+    const index = document.createElement("span");
+    index.className = "eng-card-index";
+    index.textContent = s.index;
+
+    const title = document.createElement("h3");
+    title.textContent = s.title;
+
+    const text = document.createElement("p");
+    text.textContent = s.text;
+
+    const tag = document.createElement("span");
+    tag.className = "eng-card-tag";
+    tag.textContent = s.tag;
+
+    card.append(index, title, text, tag);
     grid.appendChild(card);
   }
 }
@@ -180,7 +206,7 @@ function reveals() {
       scrollTrigger: { trigger: head, start: "top 82%" },
     });
   });
-  gsap.utils.toArray(".machine-card, .perf-cell, .spec-row, .team-group-title, .team-card").forEach((el, i) => {
+  gsap.utils.toArray(".machine-card, .eng-card, .perf-cell, .spec-row, .team-group-title, .team-card").forEach((el, i) => {
     gsap.fromTo(el, { opacity: 0, y: 34 }, {
       opacity: 1, y: 0, duration: 0.7, ease: "power2.out", delay: (i % 4) * 0.05,
       scrollTrigger: { trigger: el, start: "top 88%" },
@@ -224,6 +250,7 @@ function nav() {
 /* ---------- boot ---------- */
 function boot() {
   renderMachine();
+  renderSubsystems();
   renderSpecs();
   renderPerf();
   renderComp();
