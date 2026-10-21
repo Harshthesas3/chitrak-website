@@ -1,16 +1,14 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const config = require("../data/recruitment.json");
 const {
   HEADERS,
   validateSubmission,
   buildRow,
   escapeCell,
   normalizeUrl,
-} = require("../api/_lib/validation");
-
-const NOW = 1_800_000_000_000;
+  normalizePhone,
+} = require("../apps-script/Code.gs");
 
 function baseInput(overrides = {}) {
   return {
@@ -28,16 +26,15 @@ function baseInput(overrides = {}) {
     portfolio: "github.com/example",
     github: "https://github.com/example",
     linkedin: "",
-    consent: true,
-    commitment: false,
+    consent: "yes",
+    commitment: "no",
     company: "",
-    startedAt: NOW - 5000,
     ...overrides,
   };
 }
 
 test("accepts a complete, valid registration and normalizes values", () => {
-  const result = validateSubmission(baseInput(), config, NOW);
+  const result = validateSubmission(baseInput());
   assert.equal(result.ok, true);
   assert.deepEqual(result.errors, {});
   assert.equal(result.data.email, "harshith@rvce.edu.in");
@@ -46,54 +43,37 @@ test("accepts a complete, valid registration and normalizes values", () => {
   assert.equal(result.data.portfolio, "https://github.com/example");
   assert.equal(result.data.department, "Open application");
   assert.equal(result.data.consent, true);
+  assert.equal(result.data.commitment, "No");
 });
 
 test("rejects invalid email, phone and missing consent", () => {
   const result = validateSubmission(baseInput({
     email: "not-an-email",
     phone: "123",
-    consent: false,
-  }), config, NOW);
+    consent: "no",
+  }));
   assert.equal(result.ok, false);
   assert.match(result.errors.email, /valid email/i);
   assert.match(result.errors.phone, /10–15 digits/i);
   assert.match(result.errors.consent, /consent/i);
 });
 
-test("rejects invalid year, department, short motivation and bad URLs", () => {
+test("rejects missing year, department, short motivation and bad URLs", () => {
   const result = validateSubmission(baseInput({
-    year: "9th year",
-    department: "Made Up Department",
+    year: "",
+    department: "",
     motivation: "Too short",
     portfolio: "javascript:alert(1)",
     github: "https://",
     linkedin: "ftp://example.com/profile",
-  }), config, NOW);
+  }));
   assert.equal(result.ok, false);
-  assert.match(result.errors.year, /valid year/i);
-  assert.match(result.errors.department, /listed options/i);
+  assert.match(result.errors.year, /year of study/i);
+  assert.match(result.errors.department, /department/i);
   assert.match(result.errors.motivation, /more detail/i);
   assert.match(result.errors.portfolio, /http/i);
   assert.match(result.errors.github, /valid http/i);
   assert.match(result.errors.linkedin, /http/i);
-});
-
-test("only accepts configured departments once the list is non-empty", () => {
-  const configured = { ...config, departments: ["Engineering & Data", "Media & Partnerships"] };
-  const allowed = validateSubmission(baseInput({ department: "Media & Partnerships" }), configured, NOW);
-  assert.equal(allowed.ok, true);
-
-  const open = validateSubmission(baseInput({ department: "Open application" }), configured, NOW);
-  assert.equal(open.ok, false);
-  assert.match(open.errors.department, /listed options/i);
-});
-
-test("rejects honeypot and impossibly fast submissions", () => {
-  assert.equal(validateSubmission(baseInput({ company: "spam-bot" }), config, NOW).bot, true);
-  assert.equal(validateSubmission(baseInput({ startedAt: NOW - 1000 }), config, NOW).bot, true);
-  const stale = validateSubmission(baseInput({ startedAt: NOW - 25 * 60 * 60 * 1000 }), config, NOW);
-  assert.equal(stale.ok, false);
-  assert.match(stale.errors.form, /expired/i);
 });
 
 test("enforces field length limits", () => {
@@ -102,7 +82,7 @@ test("enforces field length limits", () => {
     branch: "B".repeat(81),
     skills: "S".repeat(601),
     motivation: "M".repeat(2001),
-  }), config, NOW);
+  }));
   assert.equal(result.ok, false);
   assert.match(result.errors.fullName, /under 100/i);
   assert.match(result.errors.branch, /under 80/i);
@@ -110,10 +90,11 @@ test("enforces field length limits", () => {
   assert.match(result.errors.motivation, /under 2000/i);
 });
 
-test("URL normalizer adds https and leaves empty values empty", () => {
+test("URL normalizer adds https and phone normalizer strips separators", () => {
   assert.equal(normalizeUrl("github.com/team-chitrak"), "https://github.com/team-chitrak");
   assert.equal(normalizeUrl("  https://example.com/a  "), "https://example.com/a");
   assert.equal(normalizeUrl(""), "");
+  assert.equal(normalizePhone("+91 98765-43210"), "+919876543210");
 });
 
 test("spreadsheet rows use the stable 19-column schema", () => {
@@ -121,12 +102,8 @@ test("spreadsheet rows use the stable 19-column schema", () => {
   assert.equal(HEADERS[0], "Submission ID");
   assert.equal(HEADERS[18], "Application Status");
 
-  const validation = validateSubmission(baseInput(), config, NOW);
-  const row = buildRow(validation.data, {
-    submissionId: "CHK-20261021-ABCD1234",
-    timestamp: "2026-10-21T10:00:00.000Z",
-    consentVersion: "v1",
-  });
+  const validation = validateSubmission(baseInput());
+  const row = buildRow(validation.data, "CHK-20261021-ABCD1234", "2026-10-21T10:00:00.000Z");
   assert.equal(row.length, HEADERS.length);
   assert.equal(row[0], "CHK-20261021-ABCD1234");
   assert.equal(row[3], "harshith@rvce.edu.in");

@@ -1,22 +1,17 @@
-/* Local development server for the static site + /api/recruitment.
+/* Local development server for the static site.
    Mirrors Vercel cleanUrls for /recruitment and /sponsor.
 
-   npm run dev            -> real API (needs Google credentials if submitting)
-   npm run dev:mock       -> in-memory mock Sheets, safe end-to-end testing
+   npm run dev        -> uses the Apps Script URL in data/recruitment.json
+   npm run dev:mock   -> in-memory mock endpoint, safe end-to-end testing
 
    This file is development-only and is excluded from Vercel deployments. */
 
 import http from "node:http";
-import { stat } from "node:fs/promises";
+import { stat, readFile } from "node:fs/promises";
 import { createReadStream } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createRequire } from "node:module";
-import { startMockSheets } from "./mock-sheets-server.mjs";
-
-const require = createRequire(import.meta.url);
-const { loadEnv } = require("./lib/load-env.js");
-loadEnv();
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = new Set(process.argv.slice(2));
@@ -24,18 +19,14 @@ const portArg = process.argv.find((arg) => arg.startsWith("--port="));
 const PORT = Number(portArg ? portArg.split("=")[1] : process.env.PORT || 8123);
 const USE_MOCK = args.has("--mock-sheets");
 
-let mock = null;
-if (USE_MOCK) {
-  mock = await startMockSheets();
-  process.env.GOOGLE_SHEETS_API_BASE = mock.url;
-  process.env.GOOGLE_ACCESS_TOKEN = "local-mock-token";
-  process.env.GOOGLE_SHEET_ID = "local-mock-sheet";
-  process.env.GOOGLE_SHEET_TAB = "Responses";
-  process.env.RECRUITMENT_RATE_LIMIT_PER_HOUR = "100";
-  process.env.RECRUITMENT_RATE_LIMIT_PER_DAY = "100";
-}
-
-const handler = require("../api/recruitment.js");
+const MOCK_HEADERS = [
+  "Submission ID", "Timestamp", "Full Name", "Email", "Phone", "USN", "Year",
+  "Branch", "Preferred Department", "Skills", "Experience", "Projects",
+  "Motivation", "Portfolio", "GitHub", "LinkedIn", "Availability", "Consent",
+  "Application Status",
+];
+const mockRows = [MOCK_HEADERS.slice()];
+const mockIdempotency = new Map();
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -124,16 +115,142 @@ async function serveFile(req, res, filePath) {
   createReadStream(filePath, { start, end }).pipe(res);
 }
 
+/* ---------- mock Apps Script endpoint ---------- */
+
+async function readBody(req) {
+  let raw = "";
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > 64 * 1024) throw new Error("Payload too large.");
+    raw += chunk;
+  }
+  return raw;
+}
+
+function duplicate(email, usn) {
+  return mockRows.slice(1).some((row) =>
+    String(row[3] || "").trim().toLowerCase() === email
+    || String(row[5] || "").trim().toUpperCase() === usn
+  );
+}
+
+function mockResult(params) {
+  if (String(params.company || "").trim()) {
+    return { ok: false, code: "invalid_request", message: "The submission could not be processed. Reload the page and try again." };
+  }
+  const startedAt = Number(params.startedAt);
+  if (!Number.isFinite(startedAt) || startedAt <= 0 || Date.now() - startedAt < 2500) {
+    return { ok: false, code: "invalid_request", message: "The submission could not be processed. Reload the page and try again." };
+  }
+
+  const errors = {};
+  if (!String(params.fullName || "").trim()) errors.fullName = "Enter your full name.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(params.email || ""))) errors.email = "Enter a valid email address.";
+  if (!/^\+?[0-9]{10,15}$/.test(String(params.phone || ""))) errors.phone = "Enter 10–15 digits, with country code if needed.";
+  if (!String(params.usn || "").trim()) errors.usn = "Enter your USN or student ID.";
+  if (!String(params.year || "").trim()) errors.year = "Select your current year of study.";
+  if (!String(params.branch || "").trim()) errors.branch = "Enter your branch or department.";
+  if (!String(params.department || "").trim()) errors.department = "Select a preferred team or department.";
+  if (!String(params.skills || "").trim()) errors.skills = "Tell the team about your technical skills.";
+  if (String(params.motivation || "").trim().length < 40) errors.motivation = "Add a little more detail (40 characters minimum).";
+  if (!["yes", "on", "true", "1"].includes(String(params.consent || ""))) errors.consent = "You must consent to the collection and use of your registration data.";
+
+  if (Object.keys(errors).length) {
+    return { ok: false, code: "validation_error", message: "Please correct the highlighted fields and submit again.", errors };
+  }
+
+  const email = String(params.email).trim().toLowerCase();
+  const usn = String(params.usn).trim().toUpperCase();
+  const idemKey = String(params.idempotencyKey || "").slice(0, 200);
+  if (idemKey && mockIdempotency.has(idemKey)) return mockIdempotency.get(idemKey);
+
+  if (duplicate(email, usn)) {
+    return { ok: false, code: "already_registered", message: "A registration with this email or USN already exists. Email chitrak@rvce.edu.in if you need to update it." };
+  }
+
+  const now = new Date();
+  const id = `CHK-${now.toISOString().slice(0, 10).replace(/-/g, "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
+  mockRows.push([
+    id,
+    now.toISOString(),
+    String(params.fullName || "").trim(),
+    email,
+    String(params.phone || "").trim(),
+    usn,
+    String(params.year || "").trim(),
+    String(params.branch || "").trim(),
+    String(params.department || "").trim(),
+    String(params.skills || "").trim(),
+    String(params.experience || "").trim(),
+    String(params.projects || "").trim(),
+    String(params.motivation || "").trim(),
+    String(params.portfolio || "").trim(),
+    String(params.github || "").trim(),
+    String(params.linkedin || "").trim(),
+    ["yes", "on", "true", "1"].includes(String(params.commitment || "")) ? "Yes" : "No",
+    "Yes — privacy notice v1",
+    "New",
+  ]);
+  const result = { ok: true, submissionId: id, timestamp: now.toISOString() };
+  if (idemKey) mockIdempotency.set(idemKey, result);
+  return result;
+}
+
+function resultPage(result, nonce) {
+  const payload = JSON.stringify({
+    source: "chitrak-recruitment",
+    result: { ...result, nonce: String(nonce || "").slice(0, 120) },
+  }).replace(/</g, "\\u003c");
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><script>window.top.postMessage(${payload}, "*");</script></body></html>`;
+}
+
+async function handleMockPost(req, res) {
+  let status = 200;
+  let result;
+  try {
+    const body = await readBody(req);
+    const params = Object.fromEntries(new URLSearchParams(body));
+    result = mockResult(params);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    res.end(resultPage(result, params.nonce));
+  } catch (error) {
+    status = error && error.message === "Payload too large." ? 413 : 400;
+    result = { ok: false, code: "invalid_request", message: "The submission could not be processed." };
+    res.statusCode = status;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.end(resultPage(result, ""));
+  }
+}
+
+/* ---------- server ---------- */
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || "127.0.0.1"}`);
     let pathname;
     try { pathname = decodeURIComponent(url.pathname); } catch { pathname = url.pathname; }
 
-    if (pathname === "/api/recruitment" || pathname === "/api/recruitment/") {
-      req.headers["x-forwarded-host"] = req.headers.host || `127.0.0.1:${PORT}`;
-      req.headers["x-forwarded-proto"] = "http";
-      await handler(req, res);
+    if (USE_MOCK && pathname === "/mock/apps-script" && req.method === "POST") {
+      await handleMockPost(req, res);
+      return;
+    }
+
+    if (USE_MOCK && pathname === "/mock/rows" && req.method === "GET") {
+      const body = JSON.stringify({ headers: mockRows[0], rows: mockRows.slice(1) });
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Cache-Control", "no-store");
+      res.end(body);
+      return;
+    }
+
+    if (USE_MOCK && pathname === "/data/recruitment.json" && req.method === "GET") {
+      const config = JSON.parse(await readFile(join(ROOT, "data", "recruitment.json"), "utf8"));
+      config.endpoint = `http://127.0.0.1:${PORT}/mock/apps-script`;
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Cache-Control", "no-store");
+      res.end(JSON.stringify(config));
       return;
     }
 
@@ -166,16 +283,15 @@ server.listen(PORT, "127.0.0.1", () => {
   console.log(`CHITRAK dev server: http://127.0.0.1:${PORT}`);
   console.log(`Recruitment page:  http://127.0.0.1:${PORT}/recruitment`);
   if (USE_MOCK) {
-    console.log("Google Sheets:     in-memory mock (no real data is written)");
-    console.log("Mock sheet rows are available only for this process.");
+    console.log("Registration:      in-memory mock Apps Script endpoint");
+    console.log("Mock rows:         http://127.0.0.1:" + PORT + "/mock/rows");
   } else {
-    console.log("Google Sheets:     real credentials from environment/.env.local");
+    console.log("Registration:      Apps Script URL from data/recruitment.json");
   }
 });
 
 async function shutdown() {
   await new Promise((done) => server.close(done));
-  if (mock) await mock.close();
   process.exit(0);
 }
 process.on("SIGINT", shutdown);

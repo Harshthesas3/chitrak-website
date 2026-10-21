@@ -1,12 +1,14 @@
 /* Team Chitrak recruitment — native form behavior, validation and submission.
-   No framework, no third-party form service. The only network destination is
-   this website's own /api/recruitment endpoint. */
+   No framework, no API keys. The form posts to a Google Apps Script web app,
+   which writes one validated row to a private Google Sheet. */
 
-const ENDPOINT = "/api/recruitment";
 const CONTACT_EMAIL = "chitrak@rvce.edu.in";
+const MESSAGE_SOURCE = "chitrak-recruitment";
+const SUBMIT_TIMEOUT_MS = 25000;
 
 const FALLBACK_CONFIG = {
   status: "open",
+  endpoint: "",
   statusLabel: "REGISTRATION OPEN",
   cycleLabel: "RECRUITMENT — NEXT CYCLE",
   cycleNote: "Cycle dates, eligibility and open positions will be confirmed by Team Chitrak.",
@@ -609,6 +611,104 @@ function collectPayload() {
   return payload;
 }
 
+function configuredEndpoint() {
+  const value = clean(state.config.endpoint);
+  if (/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(value)) return value;
+  // Local development mock. Never used on the deployed site.
+  if (/^http:\/\/(127\.0\.0\.1|localhost):\d+\/mock\/apps-script$/.test(value)) return value;
+  return "";
+}
+
+function ensureSubmitFrame() {
+  let frame = document.getElementById("recruitmentSubmitFrame");
+  if (!frame) {
+    frame = document.createElement("iframe");
+    frame.id = "recruitmentSubmitFrame";
+    frame.name = "recruitmentSubmitFrame";
+    frame.title = "Registration submission";
+    frame.hidden = true;
+    frame.setAttribute("aria-hidden", "true");
+    frame.style.display = "none";
+    document.body.appendChild(frame);
+  }
+  return frame;
+}
+
+/* Apps Script web apps do not send CORS headers, so the form is posted into a
+   hidden iframe. The script responds with a tiny page that postMessages the
+   result back. A random nonce ties the response to this submission. */
+function postRegistration(payload) {
+  return new Promise((resolve, reject) => {
+    const endpoint = configuredEndpoint();
+    if (!endpoint) {
+      reject(Object.assign(new Error("Registration endpoint is not configured."), { code: "not_configured" }));
+      return;
+    }
+
+    const frame = ensureSubmitFrame();
+    const nonce = makeUuid();
+    let form = null;
+    let timer = null;
+    let settled = false;
+
+    const cleanup = () => {
+      window.removeEventListener("message", onMessage);
+      if (timer) clearTimeout(timer);
+      if (form && form.parentNode) form.parentNode.removeChild(form);
+    };
+    const finish = (handler, value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      handler(value);
+    };
+    function onMessage(event) {
+      const message = event && event.data;
+      if (!message || message.source !== MESSAGE_SOURCE) return;
+      if (!message.result || message.result.nonce !== nonce) return;
+      finish(resolve, message.result);
+    }
+
+    window.addEventListener("message", onMessage);
+    timer = setTimeout(() => {
+      finish(reject, Object.assign(new Error("Registration confirmation timed out."), { code: "timeout" }));
+    }, SUBMIT_TIMEOUT_MS);
+
+    form = document.createElement("form");
+    form.method = "POST";
+    form.action = endpoint;
+    form.target = frame.name;
+    form.acceptCharset = "UTF-8";
+    form.style.display = "none";
+    form.setAttribute("aria-hidden", "true");
+
+    const fields = {
+      ...payload,
+      nonce,
+      idempotencyKey: state.idempotencyKey,
+      startedAt: String(payload.startedAt),
+      consent: payload.consent ? "yes" : "no",
+      commitment: payload.commitment ? "yes" : "no",
+      company: payload.company || "",
+    };
+    for (const [name, value] of Object.entries(fields)) {
+      if (value === undefined || value === null) continue;
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = String(value);
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    try {
+      form.submit();
+    } catch {
+      finish(reject, Object.assign(new Error("The form could not be submitted."), { code: "submit_failed" }));
+    }
+  });
+}
+
 async function submitForm(event) {
   event.preventDefault();
   if (state.submitting) return;
@@ -626,26 +726,14 @@ async function submitForm(event) {
   setLoading(true);
 
   try {
-    const response = await fetch(ENDPOINT, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Idempotency-Key": state.idempotencyKey,
-      },
-      body: JSON.stringify(payload),
-    });
+    const data = await postRegistration(payload);
 
-    let data = {};
-    try { data = await response.json(); } catch { data = {}; }
-
-    if (response.ok && data.ok === true) {
+    if (data && data.ok === true) {
       showSuccess(data);
       return;
     }
 
-    if (response.status === 400 && data.errors && typeof data.errors === "object") {
+    if (data && data.errors && typeof data.errors === "object") {
       clearErrors();
       let firstStep = null;
       let firstField = "";
@@ -662,24 +750,17 @@ async function submitForm(event) {
       return;
     }
 
-    if (response.status === 409) {
-      showAlert(data.message || "A registration with this email or USN already exists. Email chitrak@rvce.edu.in if you need to update it.");
-      return;
-    }
-
-    if (response.status === 429) {
-      showAlert(data.message || "Too many registration attempts. Please wait and try again, or email chitrak@rvce.edu.in.");
-      return;
-    }
-
-    if (response.status === 503) {
-      showAlert(data.message || `The registration service is temporarily unavailable. Your details are still in the form. Please try again, or email ${CONTACT_EMAIL}.`);
-      return;
-    }
-
-    showAlert(data.message || `We could not confirm your registration. Your details are still in the form. Please try again, or email ${CONTACT_EMAIL}.`);
+    showAlert(data && data.message
+      ? data.message
+      : `We could not confirm your registration. Your details are still in the form. Please try again, or email ${CONTACT_EMAIL}.`);
   } catch (error) {
-    showAlert(`We could not reach the registration server. Your details are still in the form. Check your connection and try again, or email ${CONTACT_EMAIL}.`);
+    if (error && error.code === "not_configured") {
+      showAlert(`Registration is not connected yet. Email ${CONTACT_EMAIL} to register.`);
+    } else if (error && error.code === "timeout") {
+      showAlert(`We could not confirm your registration. Wait a moment, then try again — duplicate submissions are blocked. You can also email ${CONTACT_EMAIL}.`);
+    } else {
+      showAlert(`We could not reach the registration service. Your details are still in the form. Check your connection and try again, or email ${CONTACT_EMAIL}.`);
+    }
   } finally {
     if (!successPanel.hidden) return;
     setLoading(false);
