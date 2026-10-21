@@ -649,11 +649,15 @@ function postRegistration(payload) {
     const nonce = makeUuid();
     let form = null;
     let timer = null;
+    let loadTimer = null;
+    let submitted = false;
     let settled = false;
 
     const cleanup = () => {
       window.removeEventListener("message", onMessage);
+      frame.removeEventListener("load", onFrameLoad);
       if (timer) clearTimeout(timer);
+      if (loadTimer) clearTimeout(loadTimer);
       if (form && form.parentNode) form.parentNode.removeChild(form);
     };
     const finish = (handler, value) => {
@@ -668,8 +672,18 @@ function postRegistration(payload) {
       if (!message.result || message.result.nonce !== nonce) return;
       finish(resolve, message.result);
     }
+    /* A 403 or other Google error page loads but never posts a result. Fail
+       quickly with an honest message instead of spinning for 25 seconds. */
+    function onFrameLoad() {
+      if (!submitted) return;
+      if (loadTimer) clearTimeout(loadTimer);
+      loadTimer = setTimeout(() => {
+        finish(reject, Object.assign(new Error("Registration service unavailable."), { code: "unavailable" }));
+      }, 2500);
+    }
 
     window.addEventListener("message", onMessage);
+    frame.addEventListener("load", onFrameLoad);
     timer = setTimeout(() => {
       finish(reject, Object.assign(new Error("Registration confirmation timed out."), { code: "timeout" }));
     }, SUBMIT_TIMEOUT_MS);
@@ -702,6 +716,7 @@ function postRegistration(payload) {
 
     document.body.appendChild(form);
     try {
+      submitted = true;
       form.submit();
     } catch {
       finish(reject, Object.assign(new Error("The form could not be submitted."), { code: "submit_failed" }));
@@ -756,6 +771,8 @@ async function submitForm(event) {
   } catch (error) {
     if (error && error.code === "not_configured") {
       showAlert(`Registration is not connected yet. Email ${CONTACT_EMAIL} to register.`);
+    } else if (error && error.code === "unavailable") {
+      showAlert(`The registration service is not accepting submissions right now. Your details are still in the form, but they have not been saved. Please email ${CONTACT_EMAIL}.`);
     } else if (error && error.code === "timeout") {
       showAlert(`We could not confirm your registration. Wait a moment, then try again — duplicate submissions are blocked. You can also email ${CONTACT_EMAIL}.`);
     } else {
