@@ -113,7 +113,11 @@ Edit `data/recruitment.json` and redeploy.
   "statusLabel": "REGISTRATION OPEN",
   "cycleLabel": "RECRUITMENT — NEXT CYCLE",
   "cycleNote": "Cycle dates, eligibility and open positions will be confirmed by Team Chitrak.",
-  "departments": [],
+  "departments": [
+    "Mechanical",
+    "Electrical",
+    "Social Media & Sponsorships"
+  ],
   "openDepartmentLabel": "Open application — placement discussed with the team",
   "years": ["1st year", "2nd year", "3rd year", "4th year", "Other"],
   "commitment": null,
@@ -127,9 +131,9 @@ Edit `data/recruitment.json` and redeploy.
   the closed message.
 - `endpoint`: the deployed Apps Script web app URL. Leave empty to disable
   submission with a clear error.
-- `departments`: leave empty until Team Chitrak confirms positions. Empty means
-  the form offers one “Open application” option. Add exact department names when
-  confirmed; the browser validates against this list.
+- `departments`: the confirmed preference list shown in the dropdown. The browser
+  validates against these exact values. If the list is empty, the form falls back
+  to a single “Open application” option.
 - `commitment`: `null` hides the commitment checkbox. Set an object such as
   `{ "required": true, "label": "..." }` only when the requirement is verified.
 - `retentionDays`: displayed in the privacy notice. Deletion is manual (see

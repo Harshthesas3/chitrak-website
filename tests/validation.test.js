@@ -18,7 +18,7 @@ function baseInput(overrides = {}) {
     usn: "1rv21cs001",
     year: "3rd year",
     branch: "Computer Science and Engineering",
-    department: "Open application",
+    department: "Mechanical",
     skills: "JavaScript, CAD, fabrication",
     experience: "",
     projects: "",
@@ -41,7 +41,7 @@ test("accepts a complete, valid registration and normalizes values", () => {
   assert.equal(result.data.usn, "1RV21CS001");
   assert.equal(result.data.phone, "+919876543210");
   assert.equal(result.data.portfolio, "https://github.com/example");
-  assert.equal(result.data.department, "Open application");
+  assert.equal(result.data.department, "Mechanical");
   assert.equal(result.data.consent, true);
   assert.equal(result.data.commitment, "No");
 });

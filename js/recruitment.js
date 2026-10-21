@@ -12,7 +12,7 @@ const FALLBACK_CONFIG = {
   statusLabel: "REGISTRATION OPEN",
   cycleLabel: "RECRUITMENT — NEXT CYCLE",
   cycleNote: "Cycle dates, eligibility and open positions will be confirmed by Team Chitrak.",
-  departments: [],
+  departments: ["Mechanical", "Electrical", "Social Media & Sponsorships"],
   openDepartmentLabel: "Open application — placement discussed with the team",
   years: ["1st year", "2nd year", "3rd year", "4th year", "Other"],
   commitment: null,

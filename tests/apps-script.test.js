@@ -63,7 +63,7 @@ function validParams(overrides = {}) {
     usn: "1RV21CS001",
     year: "3rd year",
     branch: "Computer Science and Engineering",
-    department: "Open application",
+    department: "Mechanical",
     skills: "JavaScript, CAD, fabrication",
     experience: "Formula Student chassis work.",
     projects: "Built a telemetry dashboard.",

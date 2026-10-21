@@ -1,11 +1,15 @@
 {
-  "$comment": "Public, non-secret recruitment configuration. Edit this file and redeploy. Verify every operational detail with Team Chitrak before launch. Empty departments means the form offers an open application only; add verified department names here when confirmed. Set endpoint to the deployed Apps Script web app URL.",
+  "$comment": "Public, non-secret recruitment configuration. Edit this file and redeploy. Verify every operational detail with Team Chitrak before launch. Departments lists the confirmed preferences shown in the registration form. Set endpoint to the deployed Apps Script web app URL.",
   "status": "open",
   "endpoint": "https://script.google.com/macros/s/AKfycbwvSsnwIpHZMYUukxgpgRxfDqn-BTRFm3iMqPm-LwNmWXsK4HsRubFiHzbIyJ89DOaS/exec",
   "statusLabel": "REGISTRATION OPEN",
   "cycleLabel": "RECRUITMENT — NEXT CYCLE",
   "cycleNote": "Cycle dates, eligibility and open positions will be confirmed by Team Chitrak.",
-  "departments": [],
+  "departments": [
+    "Mechanical",
+    "Electrical",
+    "Social Media & Sponsorships"
+  ],
   "openDepartmentLabel": "Open application — placement discussed with the team",
   "years": [
     "1st year",
