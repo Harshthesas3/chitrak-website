@@ -1,13 +1,17 @@
 {
   "name": "chitrak-website",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "Team Chitrak RVCE website — static site plus the recruitment registration endpoint.",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node scripts/dev-server.mjs",
+    "dev:mock": "node scripts/dev-server.mjs --mock-sheets",
+    "test": "node --test",
+    "setup:sheet": "node scripts/setup-recruitment-sheet.js",
+    "purge:recruitment": "node scripts/purge-recruitment.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "license": "ISC"
 }

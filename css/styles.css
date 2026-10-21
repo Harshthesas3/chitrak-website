@@ -255,8 +255,9 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
   .team-roster--media { max-width: none; }
 }
 
-/* ---------- mobile ---------- */
-@media (max-width: 760px) {
+/* ---------- collapsed nav (tablet + mobile) ---------- */
+/* Six nav links plus the CTA no longer fit beside the wordmark below ~1000px. */
+@media (max-width: 1000px) {
   .nav { padding: 14px 18px; gap: 14px; }
   .nav-links, .nav-cta { display: none; }
   .nav-burger { display: block; }
@@ -268,6 +269,10 @@ code { font-family: var(--mono); font-size: 0.85em; color: var(--ink-dim); }
   }
   .mobile-menu[hidden] { display: none; }
   .mobile-menu a { text-decoration: none; padding: 12px; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; }
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 760px) {
   .hero-title { font-size: clamp(52px, 17vw, 110px); mix-blend-mode: normal; }
   .hero-grain { display: none; }
   .hero-aggressive { font-size: 7vw; white-space: nowrap; }

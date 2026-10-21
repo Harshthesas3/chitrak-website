@@ -1,0 +1,20 @@
+{
+  "$comment": "Public, non-secret recruitment configuration. Edit this file and redeploy. Verify every operational detail with Team Chitrak before launch. Empty departments means the form offers an open application only; add verified department names here when confirmed.",
+  "status": "open",
+  "statusLabel": "REGISTRATION OPEN",
+  "cycleLabel": "RECRUITMENT — NEXT CYCLE",
+  "cycleNote": "Cycle dates, eligibility and open positions will be confirmed by Team Chitrak.",
+  "departments": [],
+  "openDepartmentLabel": "Open application — placement discussed with the team",
+  "years": [
+    "1st year",
+    "2nd year",
+    "3rd year",
+    "4th year",
+    "Other"
+  ],
+  "commitment": null,
+  "consentVersion": "v1",
+  "contactEmail": "chitrak@rvce.edu.in",
+  "retentionDays": 180
+}

@@ -1,6 +1,8 @@
 .vercel/
 .DS_Store
 Thumbs.db
+node_modules/
+*.log
 
-.vercel
 .env*
+!.env.example
