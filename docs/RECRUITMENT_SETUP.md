@@ -7,9 +7,11 @@ one row to a private Google Sheet.
 **No Google Cloud project, API key, service account, Vercel backend, or billing
 is required.**
 
-> **Verification status:** the form has been tested end-to-end against a local
-> mock endpoint. A real Google Sheet has **not** been verified yet. Complete the
-> checklist at the end before announcing that registrations are being saved.
+> **Verification status:** verified on 21 October 2026 against the real Apps
+> Script deployment and spreadsheet. A test registration was written
+> (`CHK-20261021-772B5DC9`) and a repeat submission was rejected as a duplicate,
+> proving the first row was read back from the sheet. Delete that test row before
+> launch (see the end of this document).
 
 ## How it works
 
