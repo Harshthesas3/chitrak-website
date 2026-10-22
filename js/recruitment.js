@@ -679,7 +679,7 @@ function postRegistration(payload) {
       if (loadTimer) clearTimeout(loadTimer);
       loadTimer = setTimeout(() => {
         finish(reject, Object.assign(new Error("Registration service unavailable."), { code: "unavailable" }));
-      }, 2500);
+      }, 8000);
     }
 
     window.addEventListener("message", onMessage);

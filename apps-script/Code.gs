@@ -65,8 +65,18 @@ var PHONE_RE = /^\+?[0-9]{10,15}$/;
 /* ---------- web app entry points ---------- */
 
 function doGet() {
+  var sheetInfo = null;
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) {
+      sheetInfo = {
+        name: typeof ss.getName === "function" ? ss.getName() : "Spreadsheet",
+        id: typeof ss.getId === "function" ? ss.getId() : ""
+      };
+    }
+  } catch (ignored) {}
   return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, service: "chitrak-recruitment" }))
+    .createTextOutput(JSON.stringify({ ok: true, service: "chitrak-recruitment", sheet: sheetInfo }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -107,7 +117,8 @@ function processSubmission(params) {
 
   var startedAt = Number(params.startedAt);
   var now = Date.now();
-  if (!isFinite(startedAt) || startedAt <= 0 || now - startedAt < 2500) return botRejection();
+  // Honeypot and minimum completion time
+  if (!isFinite(startedAt) || startedAt <= 0 || now - startedAt < 2500 || (startedAt - now > 60000)) return botRejection();
   if (now - startedAt > 24 * 60 * 60 * 1000) {
     return {
       ok: false,
@@ -169,6 +180,9 @@ function processSubmission(params) {
     var id = submissionId();
     var timestamp = new Date().toISOString();
     sheet.appendRow(buildRow(data, id, timestamp));
+    if (typeof SpreadsheetApp.flush === "function") {
+      SpreadsheetApp.flush();
+    }
 
     var result = { ok: true, submissionId: id, timestamp: timestamp };
     if (cacheKey) cache.put(cacheKey, JSON.stringify(result), IDEM_TTL_SECONDS);
@@ -273,7 +287,18 @@ function getSheet() {
 
   var sheet = spreadsheet.getSheetByName(SHEET_NAME);
   if (!sheet) {
-    sheet = spreadsheet.insertSheet(SHEET_NAME);
+    if (typeof spreadsheet.getSheets === "function") {
+      var sheets = spreadsheet.getSheets();
+      if (sheets && sheets.length === 1 && sheets[0].getLastRow() === 0) {
+        sheet = sheets[0];
+        if (typeof sheet.setName === "function") {
+          sheet.setName(SHEET_NAME);
+        }
+      }
+    }
+    if (!sheet) {
+      sheet = spreadsheet.insertSheet(SHEET_NAME);
+    }
     sheet.setFrozenRows(1);
   }
 
@@ -288,8 +313,10 @@ function getSheet() {
   }
 
   for (var i = 0; i < HEADERS.length; i += 1) {
-    if (String(current[i] || "").trim() !== HEADERS[i]) {
-      throw configError("Header row does not match the recruitment schema.");
+    var expected = HEADERS[i].toLowerCase().trim();
+    var actual = String(current[i] || "").toLowerCase().trim();
+    if (actual !== expected) {
+      throw configError("Header row does not match the recruitment schema (expected '" + HEADERS[i] + "', found '" + (current[i] || "") + "').");
     }
   }
   return sheet;
